@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar Estudiante</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body class="bg-light">
+  <div class="container">
+    <h1 class="title">Editar Estudiante</h1>
+
+    <% if (msg) { %>
+      <div class="alert alert-danger"><%= msg %></div>
+    <% } %>
+
+    <form method="POST" action="/edit/<%= estudiante.id_Estudiante %>" class="form">
+      <div class="row">
+        <label>Carne</label>
+        <input name="Carne" value="<%= estudiante.carne %>" required>
+      </div>
+      <div class="row">
+        <label>Nombres</label>
+        <input name="Nombres" value="<%= estudiante.nombres %>" required>
+      </div>
+      <div class="row">
+        <label>Apellidos</label>
+        <input name="Apellidos" value="<%= estudiante.apellidos %>" required>
+      </div>
+      <div class="row">
+        <label>Dirección</label>
+        <input name="Direccion" value="<%= estudiante.direccion || '' %>">
+      </div>
+      <div class="row">
+        <label>Teléfono</label>
+        <input name="Telefono" value="<%= estudiante.telefono || '' %>">
+      </div>
+      <div class="row">
+        <label>Correo</label>
+        <input name="Correo_Electronico" type="email" value="<%= estudiante.correo_Electronico %>" required>
+      </div>
+      <div class="row">
+        <label>Fecha Nacimiento</label>
+        <input name="Fecha_Nacimiento" type="date" value="<%= (estudiante.fecha_Nacimiento || '').substring(0,10) %>" required>
+      </div>
+      <div class="row">
+        <label>Tipo de Sangre</label>
+        <select name="Id_Tipo_Sangre" required>
+          <% tipos.forEach(t => { %>
+            <option value="<%= t.id_Tipo_Sangre %>" <%= (estudiante.id_Tipo_Sangre === t.id_Tipo_Sangre ? 'selected' : '') %>><%= t.sangre %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="/">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Actualizar</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

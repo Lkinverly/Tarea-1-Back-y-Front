@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listado de Estudiantes</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container">
+    <h1 class="title">Listado de Estudiantes</h1>
+
+    <div class="actions mb-3">
+      <button class="btn btn-primary" onclick="nuevoEstudiante()">+ Nuevo Estudiante</button>
+    </div>
+
+    <table class="table table-bordered table-striped align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Carne</th>
+          <th>Nombres</th>
+          <th>Apellidos</th>
+          <th>Dirección</th>
+          <th>Teléfono</th>
+          <th>Correo</th>
+          <th>Fecha Nacimiento</th>
+          <th>Tipo de Sangre</th>
+          <th style="width:140px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (estudiantes && estudiantes.length) { %>
+          <% estudiantes.forEach(e => { %>
+            <tr onclick="abrirDesdeFila(<%= e.id_Estudiante %>)" style="cursor:pointer;">
+              <td><%= e.id_Estudiante %></td>
+              <td><%= e.carne %></td>
+              <td><%= e.nombres %></td>
+              <td><%= e.apellidos %></td>
+              <td><%= e.direccion || "" %></td>
+              <td><%= e.telefono || "" %></td>
+              <td><%= e.correo_Electronico %></td>
+              <td><%= e.fecha_Nacimiento %></td>
+              <td><%= e.tipoSangre ? e.tipoSangre.sangre : "" %></td>
+              <td>
+                <button class="btn btn-sm btn-warning" type="button" onclick="editarEstudiante(<%= e.id_Estudiante %>); event.stopPropagation();">Editar</button>
+                <button class="btn btn-sm btn-danger" type="button" onclick="eliminarEstudiante(<%= e.id_Estudiante %>); event.stopPropagation();">Eliminar</button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="10" class="text-center">No hay registros de estudiantes</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================= -->
+  <!-- MODAL DE CREAR / EDITAR -->
+  <!-- ============================= -->
+  <div class="modal fade" id="modalEstudiante" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="modalTitulo">Datos del Estudiante</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="formEstudiante">
+          <div class="modal-body">
+            <input type="hidden" id="id_Estudiante">
+
+            <div class="row mb-2">
+              <div class="col">
+                <label class="form-label">Carne</label>
+                <input id="carne" name="carne" class="form-control" required pattern="^E(?!000)\d{3}$" title="Formato E001 - E999">
+              </div>
+              <div class="col">
+                <label class="form-label">Nombres</label>
+                <input id="nombres" name="nombres" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col">
+                <label class="form-label">Apellidos</label>
+                <input id="apellidos" name="apellidos" class="form-control" required>
+              </div>
+              <div class="col">
+                <label class="form-label">Dirección</label>
+                <input id="direccion" name="direccion" class="form-control">
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col">
+                <label class="form-label">Teléfono</label>
+                <input id="telefono" name="telefono" class="form-control">
+              </div>
+              <div class="col">
+                <label class="form-label">Correo</label>
+                <input id="correo" name="correo" type="email" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col">
+                <label class="form-label">Fecha Nacimiento</label>
+                <input id="fecha" name="fecha" type="date" class="form-control" required>
+              </div>
+              <div class="col">
+                <label class="form-label">Tipo de Sangre</label>
+                <select id="tipoSangre" class="form-select" required>
+                  <option value="">-- Selecciona --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <button type="button" id="btnEliminar" class="btn btn-danger">Eliminar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= -->
+  <!-- SCRIPTS -->
+  <!-- ============================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const modalEstudiante = new bootstrap.Modal(document.getElementById('modalEstudiante'));
+    const form = document.getElementById('formEstudiante');
+    const tipoSangreSelect = document.getElementById('tipoSangre');
+    const apiBase = "http://localhost:5189/api";
+
+    // =============================
+    // Cargar Tipos de Sangre
+    // =============================
+    async function cargarTiposSangre() {
+      const resp = await fetch(apiBase + "/TipoSangres");
+      const data = await resp.json();
+      const tipos = data.$values ? data.$values : data; // soporta ambos formatos
+      tipoSangreSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+      tipos.forEach(t => {
+        tipoSangreSelect.innerHTML += `<option value="${t.id_Tipo_Sangre}">${t.sangre}</option>`;
+      });
+    }
+
+    // =============================
+    // NUEVO ESTUDIANTE
+    // =============================
+    function nuevoEstudiante() {
+      form.reset();
+      document.getElementById('id_Estudiante').value = "";
+      document.getElementById('btnEliminar').style.display = 'none';
+      document.getElementById('modalTitulo').innerText = 'Nuevo Estudiante';
+      cargarTiposSangre();
+      modalEstudiante.show();
+    }
+
+    // =============================
+    // EDITAR ESTUDIANTE
+    // =============================
+    function editarEstudiante(id) {
+      abrirModalConDatos(id);
+    }
+
+    // =============================
+    // CLICK EN FILA
+    // =============================
+    function abrirDesdeFila(id) {
+      abrirModalConDatos(id);
+    }
+
+    // =============================
+    // ABRIR MODAL CON DATOS DEL ESTUDIANTE
+    // =============================
+    async function abrirModalConDatos(id) {
+      try {
+        const resp = await fetch(apiBase + "/Estudiantes/" + id);
+        if (!resp.ok) throw new Error("Error al obtener estudiante");
+        const data = await resp.json();
+        const e = data.$values ? data.$values[0] : data; // maneja ambos formatos
+
+        if (!e || !e.id_Estudiante) {
+          alert("No se encontró el estudiante con ese ID.");
+          return;
+        }
+
+        document.getElementById('modalTitulo').innerText = 'Editar Estudiante';
+        document.getElementById('id_Estudiante').value = e.id_Estudiante;
+        document.getElementById('carne').value = e.carne;
+        document.getElementById('nombres').value = e.nombres;
+        document.getElementById('apellidos').value = e.apellidos;
+        document.getElementById('direccion').value = e.direccion || "";
+        document.getElementById('telefono').value = e.telefono || "";
+        document.getElementById('correo').value = e.correo_Electronico;
+        document.getElementById('fecha').value = e.fecha_Nacimiento.split('T')[0];
+
+        await cargarTiposSangre();
+        tipoSangreSelect.value = e.id_Tipo_Sangre;
+
+        document.getElementById('btnEliminar').style.display = 'inline-block';
+        modalEstudiante.show();
+      } catch (error) {
+        alert("No se pudo cargar el estudiante.");
+        console.error("Error en abrirModalConDatos:", error);
+      }
+    }
+
+    // =============================
+    // GUARDAR (CREAR / EDITAR)
+    // =============================
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('id_Estudiante').value;
+const payload = {
+  id_Estudiante: id ? parseInt(id) : 0, // ✅ necesario para PUT
+  carne: form.carne.value,
+  nombres: form.nombres.value,
+  apellidos: form.apellidos.value,
+  direccion: form.direccion.value,
+  telefono: form.telefono.value,
+  correo_Electronico: form.correo.value,
+  fecha_Nacimiento: form.fecha.value,
+  id_Tipo_Sangre: parseInt(form.tipoSangre.value)
+};
+
+
+      const url = id ? `${apiBase}/Estudiantes/${id}` : `${apiBase}/Estudiantes`;
+      const method = id ? 'PUT' : 'POST';
+
+      await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      modalEstudiante.hide();
+      location.reload();
+    });
+
+    // =============================
+    // ELIMINAR ESTUDIANTE
+    // =============================
+    async function eliminarEstudiante(id) {
+      if (confirm('¿Desea eliminar este estudiante?')) {
+        await fetch(apiBase + "/Estudiantes/" + id, { method: 'DELETE' });
+        location.reload();
+      }
+    }
+
+    document.getElementById('btnEliminar').addEventListener('click', async () => {
+      const id = document.getElementById('id_Estudiante').value;
+      if (confirm('¿Desea eliminar este estudiante?')) {
+        await fetch(apiBase + "/Estudiantes/" + id, { method: 'DELETE' });
+        modalEstudiante.hide();
+        location.reload();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nuevo Estudiante</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body class="bg-light">
+  <div class="container">
+    <h1 class="title">Nuevo Estudiante</h1>
+
+    <% if (msg) { %>
+      <div class="alert alert-danger"><%= msg %></div>
+    <% } %>
+
+    <form method="POST" action="/create" class="form">
+        <div class="row">
+        <label>Carne</label>
+        <input 
+            name="Carne" 
+            required 
+            pattern="^E\\d{3}$" 
+            title="El carné debe tener el formato E001 hasta E999"
+        >
+        </div>
+      <div class="row">
+        <label>Nombres</label>
+        <input name="Nombres" required>
+      </div>
+      <div class="row">
+        <label>Apellidos</label>
+        <input name="Apellidos" required>
+      </div>
+      <div class="row">
+        <label>Dirección</label>
+        <input name="Direccion">
+      </div>
+      <div class="row">
+        <label>Teléfono</label>
+        <input name="Telefono">
+      </div>
+      <div class="row">
+        <label>Correo</label>
+        <input name="Correo_Electronico" type="email" required>
+      </div>
+      <div class="row">
+        <label>Fecha Nacimiento</label>
+        <input name="Fecha_Nacimiento" type="date" required>
+      </div>
+      <div class="row">
+        <label>Tipo de Sangre</label>
+        <select name="Id_Tipo_Sangre" required>
+          <option value="">-- Selecciona --</option>
+          <% tipos.forEach(t => { %>
+            <option value="<%= t.id_Tipo_Sangre %>"><%= t.sangre %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href="/">Cancelar</a>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
